@@ -2,6 +2,7 @@
   "name": "zpark_api",
   "version": "1.0.0",
   "main": "./src/server.js",
+  "repository": "https://github.com/rodrigodanielzacarias/zpark.git",
   "license": "MIT",
   "scripts": {
     "dev": "nodemon src/server.js",
@@ -12,7 +13,6 @@
     "cors": "^2.8.5",
     "dateformat": "^3.0.3",
     "esc-pos-encoder": "^1.2.0",
-    "escpos": "^2.5.2",
     "express": "^4.17.1",
     "ip": "^1.1.5",
     "jsonwebtoken": "^8.5.1"
