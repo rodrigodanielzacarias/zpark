@@ -1,3 +1,7 @@
+/**
+ * Controller para comunicação com dispositivo Arduino
+ */
+
 import dateFormat from 'dateformat';
 
 var TicketTable = [];
@@ -32,7 +36,7 @@ var TicketTable = [];
  *
  */
 
-class ArduinoController {
+class ApiV1 {
   async index(req, res) {
     /**
      * Depuração: return <table>TicketTable[]</table>
@@ -77,18 +81,7 @@ class ArduinoController {
 
     TicketTable.push(Ticket);
 
-    /**
-     * Confere se o codigo tem 12 caracteres, caso contrario completa com '0' a esquerda
-     */
-    var ticket = Ticket.id.toString();
-    const len = ticket.length;
-    for (var i = 0; i < 12 - len; i++) {
-      ticket = '0' + ticket;
-    }
-
-    // console.log('   --->   CheckIn Step 1 : ', TicketTable);
-
-    var qrcode = QrCode(`${ticket}`); // <-- Caso deseje imprimir um QR CODE
+    var qrcode = QrCode(`${Ticket.id}`); // <-- Caso deseje imprimir um QR CODE
 
     /**
      * Formatação e impressao de tickets
@@ -189,7 +182,6 @@ class ArduinoController {
         );
       }
     }
-    // console.log(TicketTable);
 
     res.setHeader('lcd_a', ' ESTACIONAMENTO ');
     res.setHeader('lcd_b', `${dateFormat(new Date(), 'dd/mm/yyyy HH:MM')}`);
@@ -217,7 +209,6 @@ class ArduinoController {
         );
       }
     }
-    // console.log(TicketTable);
 
     res.setHeader('lcd_a', ' SIGA EM FRENTE ');
     res.setHeader('lcd_b', ` ---> ---> ---> `);
@@ -246,8 +237,6 @@ class ArduinoController {
     }
     console.log(' -> Cupom nao completou checkin: ', id);
 
-    // console.log(TicketTable);
-
     res.setHeader('lcd_a', 'CUPOM CANCELADO ');
     res.setHeader('lcd_b', `ID:${id}                  `);
 
@@ -262,7 +251,7 @@ class ArduinoController {
     res.setHeader('lcd_a', ' ESTACIONAMENTO ');
     res.setHeader('lcd_b', `${dateFormat(new Date(), 'dd/mm/yyyy HH:MM')}`);
 
-    return res.send();
+    return res.send(`${dateFormat(new Date(), 'dd/mm/yyyy HH:MM:ss')}`);
   }
 
   async postRegister(req, res) {
@@ -278,53 +267,4 @@ class ArduinoController {
   }
 }
 
-function QrCode(qrdata) {
-  /**
-   * Função que gera um byte array para imprimir um QRCODE
-   */
-
-  var urldata = `http://192.168.8.103:3333/ticket/${qrdata}`;
-
-  const cn = 49;
-  const m = 49;
-  const GS = 29; //0x1d
-  const k = 107; //0x6b
-  var SizeCode = 0;
-  var DotSize = 7;
-
-  // var modelQR = [GS, 0x28, k, 3, 0, cn, 65, 0]; //scheme
-  var dotSize = [GS, 0x28, k, 3, 0, cn, 66, DotSize]; //0x03
-  var sizeQR_ = [GS, 0x28, k, 3, 0, cn, 67, SizeCode]; //0x03
-  // var errorQR = [GS, 0x28, k, 3, 0, cn, 69, 0];
-  var storeQR = [GS, 0x28, k, urldata.length + 3, 0, cn, 80, m];
-  var printQR = [GS, 0x28, k, 3, 0, cn, 81, m];
-
-  let EscPosEncoder = require('esc-pos-encoder');
-
-  let encoder = new EscPosEncoder();
-  let qrcode = encoder
-    // .raw(modelQR)
-    // .raw(dotSize)  // <-- QRCODE
-    // .raw(sizeQR_)  // <-- QRCODE
-    // // .raw(errorQR)
-    // .raw(storeQR)  // <-- QRCODE
-    // .raw(Buffer.from(urldata, 'utf8'))  // <-- QRCODE
-    // .raw(printQR)  // <-- QRCODE
-    // .newline()
-    .barcode(qrdata, 'ean13', 150)
-    // .newline()
-    .text(qrdata)
-    // .newline()
-    // .newline()
-    .encode();
-
-  var strqrcode = '';
-
-  for (var char in qrcode) {
-    strqrcode += qrcode[char].toString() + ',';
-  }
-
-  return strqrcode;
-}
-
-export default new ArduinoController();
+export default new ApiV1();
