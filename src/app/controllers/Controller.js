@@ -1,55 +1,42 @@
-var TicketTable = []; // Database
+let EscPosEncoder = require('esc-pos-encoder');
 
-class Controller {
-  /* ... */
-  async getAvulso(req, res) {
-    /**
-     * Gera um novo registro
-     */
-    const Ticket = {
-      id: TicketTable.length + 1,
-      hostAdd: req.connection.remoteAddress,
-      createdAt: dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss'),
-      takedAt: null,
-      checkinAt: null,
-      validationAt: null,
-      checkoutAt: null,
-      canceledAt: null,
-    };
+function QrCode(qrdata) {
+  /**
+   * Função que gera um byte array para imprimir um QRCODE
+   */
 
-    TicketTable.push(Ticket);
+  var urldata = `${qrdata}`;
 
-    /**
-     * Confere se o codigo tem 12 caracteres,
-     * caso contrario completa com '0' a esquerda
-     */
-    var ticket = Ticket.id.toString();
-    const len = ticket.length;
-    for (var i = 0; i < 12 - len; i++) {
-      ticket = '0' + ticket;
-    }
+  const cn = 49;
+  const m = 49;
+  const GS = 29;
+  const k = 107;
+  var SizeCode = 0;
+  var DotSize = 7;
 
-    res.setHeader('zpark', `${ticket}`);
-    res.setHeader('lcd_a', ' RETIRE O CUPOM ');
-    res.setHeader('lcd_b', `ID:${ticket}            `);
-    res.setHeader(
-      'tck_one', // <-- Texto Primeira linha do Ticket
-      `BEM VINDO`
-    );
-    res.setHeader(
-      'tck_two', // <-- Texto Segunda linha do Ticket
-      `ZPARK ESTACIONAMENTOS`
-    );
-    res.setHeader(
-      'datetime', // <-- Texto Terceira linha do Ticket
-      `${dateFormat(new Date(), 'dd/mm/yyyy HH:MM:ss')}`
-    );
-    res.setHeader(
-      'tck_body', // <-- Texto corpo do Ticket
-      `Valide seu CUPOM no interior da loja<n>Bilhete unico e intransferivel.<n>Mantenha seguro!<n>Nao nos responsabilizamos por pertences<n>deixados no interior do veiculo.`
-    );
+  var dotSize = [GS, 0x28, k, 3, 0, cn, 66, DotSize]; //0x03
+  var sizeQR_ = [GS, 0x28, k, 3, 0, cn, 67, SizeCode]; //0x03
+  var storeQR = [GS, 0x28, k, urldata.length + 3, 0, cn, 80, m];
+  var printQR = [GS, 0x28, k, 3, 0, cn, 81, m];
 
-    return res.send();
+  let encoder = new EscPosEncoder();
+  let qrcode = encoder
+    .raw(dotSize) // <-- QRCODE
+    .raw(sizeQR_) // <-- QRCODE
+    .raw(storeQR) // <-- QRCODE
+    .raw(Buffer.from(urldata, 'utf8')) // <-- QRCODE
+    .raw(printQR) // <-- QRCODE
+    .text(qrdata)
+    .encode();
+
+  var strqrcode = new String();
+
+  for (var char in qrcode) {
+    strqrcode += qrcode[char].toString() + ',';
   }
-  /* ... */
+
+  /**
+   * retorna para o dispositivo string separado cada byte por ','
+   */
+  return strqrcode;
 }

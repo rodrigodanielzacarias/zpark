@@ -15,16 +15,6 @@ routes.get('/api/arduino/', ArduinoController.index);
 
 routes.use(authMiddlewareArduino); // <-- apartir desse ponto exige que esteja autenticado
 
-routes.post(
-  '/api/arduino/avulso/checkin/:id',
-  ArduinoController.postAvulsoCheckIn
-);
-
-routes.put(
-  '/api/arduino/avulso/checkin/:id',
-  ArduinoController.putAvulsoCheckIn
-);
-
 routes.get('/api/arduino/avulso', ArduinoController.getAvulso);
 
 routes.post('/api/arduino/alert', ArduinoController.postAlert);
@@ -34,5 +24,15 @@ routes.delete('/api/arduino/avulso/:id', ArduinoController.deleteAvulso);
 routes.get('/api/arduino/datetime', ArduinoController.getDatetime);
 
 routes.post('/api/arduino/register', ArduinoController.postRegister);
+
+routes.post(
+  '/api/arduino/avulso/checkin/:id',
+  ArduinoController.postAvulsoCheckIn
+);
+
+routes.put(
+  '/api/arduino/avulso/checkin/:id',
+  ArduinoController.putAvulsoCheckIn
+);
 
 export default routes;

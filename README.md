@@ -125,7 +125,7 @@ export default async (req, res, next) => {
 
 #### [getAvulso()]()
 
-Quando o totem inicia um novo ciclo
+Inicia um novo ciclo
 
 > Carrega dados do ticket na base de dados,
 > preenche comandos para retornar para o dispositivo,
@@ -133,6 +133,8 @@ Quando o totem inicia um novo ciclo
 > exemplo:
 
 ```sh
+import dateFormat from 'dateformat';
+
 var TicketTable = []; // Database
 
 class Controller {
@@ -194,34 +196,134 @@ class Controller {
 
 #### [putAvulsoCheckIn()]()
 
-Avisa quando o cliente retirou o cupom do totem
+Quando o cliente retirou o cupom do totem
 
 > Aqui voce pode capturar o id, validar e atualizar a sua base de dados com a informação
 > E na sequencia retornar com um texto para exibir no display
 > Um bom exemplo de mensagem para envia seria:
+> exemplo:
 
 ```sh
-{'lcd_a': ' SIGA EM FRENTE '} //mensagens de 16 caracteres cada linha
-{'lcd_b': ' ---> ---> ---> '}
+import dateFormat from 'dateformat';
+
+var TicketTable = []; // Database
+
+class Controller {
+  /* ... */
+  async putAvulsoCheckIn(req, res) {
+    /**
+     * Checkin 2º estagio: Informa que o cliente retirou o Cupom da impressora
+     * Ticket_id enviado no req.params.id
+     * Seta mensagens para exibir no LCD
+     */
+
+    const { id } = req.params;
+
+    /**
+     * Atualiza TicketTable[ticket].takedAt
+     */
+    for (var ticket in TicketTable) {
+      if (TicketTable[ticket].id == parseInt(id, 10)) {
+        TicketTable[ticket].takedAt = dateFormat(
+          new Date(),
+          'yyyy-mm-dd HH:MM:ss'
+        );
+      }
+    }
+    res.setHeader('lcd_a', ' SIGA EM FRENTE '); //mensagens de 16 caracteres cada linha
+    res.setHeader('lcd_b', ` ---> ---> ---> `);
+
+    return res.send();
+  }
+  /* ... */
+}
 ```
 
 ---
 
 #### [postAvulsoCheckIn()]()
 
-Avisa quando um cliente completou o checkin passando pela cancela
+Quando um cliente completou o checkin passando pela cancela
 
 > Aqui voce pode capturar os dados e atualizar sua base de dados conforme necessario.
 > Logo, pode também retornar novas mensagens para imprimir no display:
 > Uma boa dica seria enviar DataHora atualizada
+> exemplo:
+
+```sh
+import dateFormat from 'dateformat';
+
+var TicketTable = []; // Database
+
+class Controller {
+  /* ... */
+  async postAvulsoCheckIn(req, res) {
+    /**
+     * Envia mensagens para exibir no LCD após passagem do veiculo pela cancela
+     * Ticket_id enviado no req.params.id
+     * Seta mensagens para exibir no LCD
+     */
+
+    const { id } = req.params; // <-- Ticket_id confirmação de checkin completo
+
+    /**
+     * Atualiza TicketTable[ticket].checkinAt
+     */
+    for (var ticket in TicketTable) {
+      if (TicketTable[ticket].id == parseInt(id, 10)) {
+        TicketTable[ticket].checkinAt = dateFormat(
+          new Date(),
+          'yyyy-mm-dd HH:MM:ss'
+        );
+      }
+    }
+    // console.log(TicketTable);
+
+    res.setHeader('lcd_a', ' ESTACIONAMENTO ');
+    res.setHeader('lcd_b', `${dateFormat(new Date(), 'dd/mm/yyyy HH:MM')}`);
+
+    return res.send();
+  }
+  /* ... */
+}
+```
 
 ---
 
 #### [deleteAvulso()]()
 
-Avisa quando um ciclo expirou mas não completou
+Quando um ciclo expirou mas não completou
 
 > Aqui voce pode capturar os dados e remover, ou inutilizar na base de dados. Evitando fraudes
+> exemplo:
+
+```sh
+import dateFormat from 'dateformat';
+
+var TicketTable = []; // Database
+
+class Controller {
+  /* ... */
+  async deleteAvulso(req, res) {
+    const { id } = req.params;
+    /**
+     * Atualiza TicketTable[ticket].deletedAt
+     */
+    for (var ticket in TicketTable) {
+      if (TicketTable[ticket].id == parseInt(id, 10)) {
+        TicketTable[ticket].canceledAt = dateFormat(
+          new Date(),
+          'yyyy-mm-dd HH:MM:ss'
+        );
+      }
+    }
+    res.setHeader('lcd_a', 'CUPOM CANCELADO ');
+    res.setHeader('lcd_b', `ID:${id}                  `);
+    return res.send();
+  }
+  /* ... */
+}
+```
 
 ---
 
@@ -229,7 +331,72 @@ Avisa quando um ciclo expirou mas não completou
 
 Retorna datahora atualizada
 
+> exemplo:
+
+```sh
+import dateFormat from 'dateformat';
+
+var TicketTable = []; // Database
+
+class Controller {
+  /* ... */
+  async getDatetime(req, res) {
+    res.setHeader('lcd_a', ' ESTACIONAMENTO ');
+    res.setHeader('lcd_b', `${dateFormat(new Date(), 'dd/mm/yyyy HH:MM')}`);
+    return res.send();
+  }
+  /* ... */
+}
+
+```
+
 ---
+
+#### [function GenQrCodeArduino()]()
+
+> Função que gera um byte array para imprimir um QRCODE
+
+```sh
+let EscPosEncoder = require('esc-pos-encoder');
+
+function GenQrCodeArduino(qrcode) {
+
+  var urldata = `${qrcode}`;
+
+  const cn = 49;
+  const m = 49;
+  const GS = 29;
+  const k = 107;
+  var SizeCode = 0;
+  var DotSize = 7;
+
+  var dotSize = [GS, 0x28, k, 3, 0, cn, 66, DotSize]; //0x03
+  var sizeQR_ = [GS, 0x28, k, 3, 0, cn, 67, SizeCode]; //0x03
+  var storeQR = [GS, 0x28, k, urldata.length + 3, 0, cn, 80, m];
+  var printQR = [GS, 0x28, k, 3, 0, cn, 81, m];
+
+  let encoder = new EscPosEncoder();
+  let qrcode = encoder
+    .raw(dotSize) // <-- QRCODE
+    .raw(sizeQR_) // <-- QRCODE
+    .raw(storeQR) // <-- QRCODE
+    .raw(Buffer.from(urldata, 'utf8')) // <-- QRCODE
+    .raw(printQR) // <-- QRCODE
+    .text(qrcode)
+    .encode();
+
+  var strqrcode = new String();
+
+  for (var char in qrcode) {
+    strqrcode += qrcode[char].toString() + ',';
+  }
+
+  /**
+   * retorna para o dispositivo string separado cada byte por ','
+   */
+  return strqrcode;
+}
+```
 
 ### Geral:
 
