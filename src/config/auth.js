@@ -1,4 +1,4 @@
 export default {
-  secret: 'bla',
+  secret: 'YourSecretKeyword',
   expiresIn: '7d',
 };
