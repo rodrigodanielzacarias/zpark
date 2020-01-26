@@ -63,7 +63,7 @@ res.setHeader('datetime', 'TEXTO PARA IMPRIMIR'); // imprimir na linha ...
 
 # DataBase
 
-> Esse modelo utiliza um static array para nimular uma base de dados. Para modo produção, você precisará implementar conexão com sua base de dados
+> Esse modelo utiliza um static array para simular uma base de dados. Para modo produção, você precisará implementar conexão com sua base de dados
 
 ## AuthMiddleware
 
