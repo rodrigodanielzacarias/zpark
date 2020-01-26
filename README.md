@@ -64,6 +64,65 @@ res.setHeader('datetime', 'TEXTO PARA IMPRIMIR'); // imprimir na linha ...
 
 # Funções basicas do Controller:
 
+## AuthMiddleware
+
+> Exemplo:
+
+```sh
+import jwt from 'jsonwebtoken';
+import { promisify } from 'util';
+import authConfig from '../../config/auth';
+
+export default async (req, res, next) => {
+  /**
+   * Caso a requisição não informe um token ou login valildo
+   * informa e encerra a requisição
+   */
+  const { authHeader, ztoken } = req.headers;
+  if (!authHeader && !ztoken) {
+    console.log(`Host [${res.connection.remoteAddress}] Dont have permission`);
+    res.setHeader('error', 'Dont have permission');
+    return res.status(401).send('Dont have permission');
+  }
+  if (authHeader) {
+    /**
+     * Cria um token
+     */
+    const [mac, pin] = authHeader.split('@');
+    const mylocalip = res.connection.remoteAddress; // <-- remote address
+    const mytoken = jwt.sign({ mac, pin, mylocalip }, authConfig.secret, {
+      expiresIn: authConfig.expiresIn,
+    });
+    res.setHeader('ztoken', mytoken);
+    res.setHeader('lcd_a', 'AUTENTICACAO OK ');
+    res.setHeader('registered', 1);
+    return next();
+  } else {
+    try {
+      /**
+       * Verifica se o ip do dispositivo remoto é valido
+       * Para maior segurança, voce também pode verificar se o mac e pin são validos
+       */
+      const decoded = await promisify(jwt.verify)(ztoken, authConfig.secret);
+      if (res.connection.remoteAddress != decoded.mylocalip) {
+        res.setHeader('error', 'TOKEN INVALID');
+        res.setHeader('lcd_a', ' TOKEN INVALID  ');
+        res.setHeader('lcd_b', ' HOST  INVALID  ');
+        res.setHeader('registered', 0);
+        return res.send();
+      } else {
+        return next();
+      }
+    } catch (err) {
+      res.setHeader('error', 'TOKEN INVALID');
+      res.setHeader('lcd_a', ' TOKEN INVALID  ');
+      res.setHeader('registered', 0);
+      return res.send();
+    }
+  }
+};
+```
+
 #### [getAvulso()]()
 
 Quando o totem inicia um novo ciclo
@@ -116,8 +175,11 @@ Retorna datahora atualizada
 ### Geral:
 
 Criado por Rodrigo Daniel Zacarias
+
 [rodrigo@zacarias.me](mailto:rodrigo@zacarias.me)
+
 WhatsApp [ +55 (51) 99683-4984](https://api.whatsapp.com/send?phone=5551996834984&text=Ola)
+
 Telegram [@rodrigodanielzacarias](https://t.me/rodrigodanielzacarias)
 
 ## License
