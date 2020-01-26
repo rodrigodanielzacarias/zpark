@@ -6,7 +6,7 @@ Esta api foi desenvolvida essclusivamente para uso com gabinetes e placas ZPARK 
 - v1.0 Integração com Arduino Estavel
 - V2.0 Integração com Raspberry \*Não publicado
 
-Essa api permite:
+Recursos:
 
 - Escutar dispositivos remotos de forma rapida e inteligente
 - Manipular os Middlewares de autenticação conforme seu app
@@ -39,11 +39,34 @@ $ yarn
 $ yarn dev
 ```
 
+# Comandos
+
+todos os comando são enviados no header
+
+```sh
+res.setHeader('zpark', 'comando'); // comando de uso geral
+res.setHeader('lcd_a', 'TEXTO PARA IMPRIMIR NO LCD'); // imprimir na linha superior do lcd
+res.setHeader('lcd_b', 'TEXTO PARA IMPRIMIR NO LCD'); // imprimir na linha inferior do lcd
+res.setHeader('standby', '1'); // 1 habilita modo standby, 0 desabilita
+res.setHeader('qrcode', bytearray); // aramzena um byte array para gerar um qrcode na impressora
+res.setHeader('lcd_a', 'TEXTO PARA IMPRIMIR NO LCD'); // imprimir na linha superior do lcd
+res.setHeader('tck_one', 'TEXTO PARA IMPRIMIR'); // imprimir na linha ...
+res.setHeader('tck_two', 'TEXTO PARA IMPRIMIR'); // imprimir na linha ...
+res.setHeader('tck_body', 'TEXTO PARA IMPRIMIR'); // imprimir na linha ...
+res.setHeader('datetime', 'TEXTO PARA IMPRIMIR'); // imprimir na linha ...
+```
+
+> > Mais comandos serão implementados em breve
+
+# DataBase
+
+> Esse modelo não dispõe de conexão com base de dados. Você precisará implementar seu codigo para integrar
+
 # Funções basicas do Controller:
 
 #### [getAvulso()]()
 
-Chamado quando o totem inicia um novo ciclo
+Quando o totem inicia um novo ciclo
 
 > Carrega dados do ticket na base de dados,
 > preenche comandos para retornar para o arduino,
@@ -68,7 +91,7 @@ Avisa quando o cliente retirou o cupom do totem
 
 #### [postAvulsoCheckIn()]()
 
-Avisa quando um ticket completou o checkin passando pela cancela
+Avisa quando um cliente completou o checkin passando pela cancela
 
 > Aqui voce pode capturar os dados e atualizar sua base de dados conforme necessario.
 > Logo, pode também retornar novas mensagens para imprimir no display:
@@ -78,7 +101,7 @@ Avisa quando um ticket completou o checkin passando pela cancela
 
 #### [deleteAvulso()]()
 
-Avisa quando um ciclo comecou mas nao completou.
+Avisa quando um ciclo expirou mas não completou
 
 > Aqui voce pode capturar os dados e remover, ou inutilizar na base de dados. Evitando fraudes
 
@@ -86,7 +109,7 @@ Avisa quando um ciclo comecou mas nao completou.
 
 #### [getDatetime()]()
 
-Chamado quando o totem necessita a datahora atualizada
+Retorna datahora atualizada
 
 ---
 
