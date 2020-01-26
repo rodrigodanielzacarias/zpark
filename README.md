@@ -24,7 +24,11 @@ Para mais informações você pode contatar nos canais [WhatsApp +55 (51) 99683-
 
 Zpark requer [Node.js](https://nodejs.org/) v12+ && Yarn
 
-Após clonar o repósitorio, basta rodar yarn e aguardar a instalação de todas as dependencias.
+> Clone:
+
+```sh
+$ git clone https://github.com/rodrigodanielzacarias/zpark.git
+```
 
 > install dependencies
 
@@ -32,7 +36,6 @@ Após clonar o repósitorio, basta rodar yarn e aguardar a instalação de todas
 $ yarn
 ```
 
-> ...then
 > run server
 
 ```sh
@@ -41,7 +44,7 @@ $ yarn dev
 
 # Comandos
 
-todos os comando são enviados no header
+> Todos os comando são enviados no header
 
 ```sh
 res.setHeader('zpark', 'comando'); // comando de uso geral
@@ -60,7 +63,7 @@ res.setHeader('datetime', 'TEXTO PARA IMPRIMIR'); // imprimir na linha ...
 
 # DataBase
 
-> Esse modelo não dispõe de conexão com base de dados. Você precisará implementar seu codigo para integrar
+> Esse modelo utiliza um static array para nimular uma base de dados. Para modo produção, você precisará implementar conexão com sua base de dados
 
 ## AuthMiddleware
 
